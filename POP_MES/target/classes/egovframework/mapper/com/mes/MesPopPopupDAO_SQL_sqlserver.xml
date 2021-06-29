@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MesPopPopUpDAO">
+
+	<select id="selectCheckProdValidItem" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/**
+		  * MesPopPopUpDAO.selectCheckProdValidItem
+		  * 오투입 체크
+		 */
+		 
+		SELECT 
+			COUNT(*) CNT
+		FROM AF_BOM BO WITH(NOLOCK) 
+		LEFT OUTER JOIN AF_MATERIAL MS ON ( BO.MTRLCODE = MS.MTRLCODE)
+		WHERE  BO.PRODCODE = #{soName} 
+		   AND MS.PRESSNAME= #{mtrlCode} 
+	</select>
+
+	<select id="selectCheckMtrl" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/**
+		  * MesPopPopUpDAO.selectCheckMtrl
+		  * 자재 존재 여부 체크
+		 */
+		 
+		SELECT 
+			COUNT(*) CNT
+		FROM AF_MATERIAL MS WITH(NOLOCK)
+		WHERE MS.PRESSNAME= #{mtrlCode} 
+	</select>
+	
+	<select id="selectMtrlItemOnLine" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		 /**
+		 * MesPopPopUpDAO.selectMtrlItemOnLine
+		 * 공정재고 확인
+		 */
+		 
+		 SELECT
+			pl.LINECODE AS WORKLINE,
+			#{mtrlCode} AS MTRLCODE,
+			(SELECT MTRLNAME FROM af_material WHERE MTRLCODE = #{mtrlCode}) AS MTRLNAME,
+			ISNULL(SUM(STOCKQTY), 0) AS STOCKQTY
+		FROM af_processLine pl WITH(NOLOCK)
+		LEFT OUTER JOIN af_Procstock ps  WITH(NOLOCK)
+			on (ps.WORKLINE = pl.LINECODE and ps.MTRLCODE = #{mtrlCode})
+		WHERE pl.USEYN = 'Y'
+		GROUP BY pl.LINECODE, MTRLCODE, MTRLNAME
+	</select>
+	
+	<delete id="deleteLineProdItemQty" parameterType="java.util.HashMap" >
+		DELETE FROM
+			af_Procstock
+		WHERE
+			MTRLCODE = #{mtrlCode}
+			AND WORKLINE IN 
+			<foreach collection="updateLineList" item='item' index='i' open="(" close=")" separator=",">#{item}</foreach>
+	</delete>
+	
+	<insert id="insertLineProdItemQty" parameterType="java.util.HashMap" >
+		INSERT INTO af_Procstock (
+			MTRLCODE,
+			MTRLNAME,
+			PRODCODE,
+			BOMNO,
+			SEQNO,
+			STOCKQTY,
+			WORKPROC,
+			STOCKLOC,
+			PROCTRNSDTTM,
+			WORKLINE,
+			WORKEQUIP,
+			LOTNO,
+			insuser,
+			insdttm,
+			upduser,
+			upddttm,
+			RELSEQNO
+         ) VALUES (
+			#{mtrlCode},
+			(SELECT MTRLNAME FROM af_material WHERE MTRLCODE = #{mtrlCode}),
+			#{prodCode},
+			(select dbo.ft_get_BOMNO(#{prodCode}, CONVERT(VARCHAR, GETDATE(), 112))),
+			#{seqNo},
+			#{stockQty},
+			#{workLine},
+			'',
+			#{upddttm},
+			#{workLine},
+			NULL,
+			NULL,
+			#{insuser},
+			#{insdttm},
+			#{upduser},
+			#{upddttm},
+			NULL
+		)
+	</insert>
+</mapper>

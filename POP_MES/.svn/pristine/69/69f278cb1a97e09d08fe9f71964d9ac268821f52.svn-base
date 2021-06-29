@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MesPopDAO">
+
+	<select id="selectMesProdWorkOrderList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/**
+		  * MesPopDAO.selectMesProdWorkOrderList
+		  * 작업 목록 조회
+		 */
+		 
+		SELECT
+			AA.WORKORDERNO, 
+			AA.PRODSTATUS,
+			AA.PRODLINECD, 
+			AA.PRODEMPNO, 
+			AA.PRODSTARTDTTM,
+			AA.PRODENDDTTM,
+			AA.PRODSTPRSN,
+			AA.SONO,
+		    BB.SONAME,
+			PP.PRODNAME,  
+			BB.SOQTY, 
+			CC.WODTTM
+		FROM 
+			af_prodrslt AA,
+			af_salesorder BB
+		left outer join af_product PP on (BB.soname = PP.PRODCODE),
+			af_workorder CC
+		WHERE 1=1
+			AND AA.SONO = BB.SONO
+			AND BB.SONO = CC.PONO
+			<if test="prodLineCd != null and prodLineCd != ''">
+				AND (PRODLINECD = #{prodLineCd}  OR PRODSTATUS ='WA')
+			</if>
+<!-- 			<if test="prodEmpNo != null and prodEmpNo != ''"> -->
+<!-- 				AND PRODEMPNO = #{prodEmpNo} -->
+<!-- 			</if> -->
+	</select>
+	
+	<select id="selectMesProdWorkOrderItem" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/**
+		  * MesPopDAO.selectMesProdWorkOrderItem
+		  * 작업 상세 조회
+		 */
+		 
+		SELECT TOP(1)
+			AA.WORKORDERNO, 
+			AA.PRODSTATUS,
+			AA.PRODLINECD,
+			AA.PRODEMPNO,
+			AA.PRODSTARTDTTM,
+			AA.PRODENDDTTM,
+			AA.PRODSTPDTTM,
+			AA.SONO,
+			BB.SONAME,
+			BB.SOQTY,
+			CC.WODTTM
+		FROM 
+			af_prodrslt AA,
+			af_salesorder BB,
+			af_workorder CC
+		WHERE 1=1
+			AND AA.SONO = BB.SONO
+			AND BB.SONO = CC.PONO
+	  		AND AA.WORKORDERNO = #{workOrderNo}
+	</select>
+	
+	<select id="selectMesProcessLineList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/**
+		  * MesPopDAO.selectMesProcessLine
+		  * 라인 조회
+		 */
+		 
+		SELECT 
+			LINECODE,
+			LINENAME,
+	      	LINEOPER,
+	      	DISPSEQ,
+	      	PROCCODE,
+	      	AUTOPROCYN,
+	      	AUTOPROCCD,
+	      	MRPYN,
+	      	BEFLINE,
+	      	AFTLINE
+		FROM 
+			af_processLine
+		WHERE 1=1
+	  		AND USEYN = 'Y'
+	</select>
+	
+	<select id="selectMesWorkerList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/**
+		  * MesPopDAO.selectMesWorkerList
+		  * 작업자 조회
+		 */
+	
+		SELECT 
+			USERID,
+			USERNAME,
+			PASSWORD,
+			DEPTCODE,
+			EMPNO,
+			RANKCD,
+			POSITIONCD,
+			ENTIREDATE,
+			HIREDATE,
+			TELNO,
+			ADDR,
+			EMPPHOTO,
+			ATTR1,
+			ATTR2,
+			ATTR3,
+			ATTR4,
+			ATTR5
+		FROM af_user
+		WHERE 1=1
+			AND USEYN = 'Y' 
+	</select>
+	
+	<select id="selectMesCommonCodeList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/**
+		  * MesPopDAO.selectMesCommonCodeList
+		  * 공통 코드 조회
+		 */
+	
+		SELECT 
+			cd_no,
+			itm_cd,
+			itm_nm,
+			rem,
+			cls,
+			seq,
+			attribute_1,
+			attribute_2,
+			attribute_3,
+			attribute_4,
+			attribute_5,
+			attribute_6,
+			attribute_7,
+			attribute_8,
+			attribute_9,
+			attribute_10,
+			attribute_11,
+			attribute_12
+		FROM
+		 	af_cr_cd
+		WHERE 1=1
+			AND cd_no = #{cdNo}
+	</select>
+	
+	<update id="updateMesPopItem" parameterType="java.util.HashMap">
+		/**
+		  * MesPopDAO.updateMesPopItem
+		  * 작업 항목 수정
+		 */
+	
+		UPDATE 
+			af_prodrslt
+		SET
+			<if test="prodStartDttm != null and prodStartDttm != ''">
+				PRODSTARTDTTM = #{prodStartDttm},
+			</if>
+			<if test="prodEndDttm != null and prodEndDttm != ''">
+				PRODENDDTTM = #{prodEndDttm},
+			</if>
+			<if test="prodStprDttm != null and prodStprDttm != ''">
+				PRODSTPDTTM = #{prodStprDttm},
+			</if>
+			<if test="prodStatus != null and prodStatus != ''">
+		    	PRODSTATUS = #{prodStatus},
+		    </if>
+		    <if test="inspqty != null and inspqty != ''">
+		    	PRODQTY = #{inspqty},
+		    </if>
+		    <if test="badCode != null and badCode != ''">
+		    	BADEXPLN = #{badCode},
+		    </if>
+		    <if test="badQty != null and badQty != ''">
+		    	BADQTY = #{badQty},
+		    </if>
+		    <if test="prodLineCd != null and prodLineCd != ''">
+		    	PRODLINECD = #{prodLineCd},
+		    </if>
+		    upddttm = #{upddttm}
+		WHERE 
+			WORKORDERNO = #{workOrderNo}
+	</update>
+	
+	<insert id="insertProcQualityItem" parameterType="java.util.HashMap">
+		/**
+		  * MesPopDAO.insertProcQualityItem
+		  * 공정 품질 정보 삽입
+		 */
+		 
+		 INSERT INTO af_procQuality
+           (PROCCODE 
+           ,WONO
+           ,PRODCODE
+           ,SEQNO
+           ,BADCODE
+           ,BADQTY
+           ,WOEMPNO
+           ,insuser
+           ,insdttm
+           ,upduser
+           ,upddttm)
+    	 VALUES
+           (#{prodLineCd}
+           ,#{workOrderNo}
+           ,#{soName}
+           ,(SELECT MAX(SEQNO)+1 FROM af_procQuality)
+           ,#{badCode}
+           ,#{badQty}
+           ,#{prodEmpNo}
+           ,#{insuser}
+           ,#{insdttm}
+           ,#{upduser}
+           ,#{upddttm})
+	</insert>
+	
+	<insert id="insertProcInspectItem" parameterType="java.util.HashMap">
+		/**
+		  * MesPopDAO.insertProcInspectItem
+		  * 공정검사정보 삽입
+		 */
+	
+		INSERT INTO af_procInspect
+	           (PRODCODE
+	           ,PROCCODE
+	           ,INSPQTY
+	           ,INSPEMPNO
+	           ,IMPLQTY
+	           ,BADQTY
+	           ,insuser
+	           ,insdttm
+	           ,upduser
+	           ,upddttm)
+	     VALUES
+	           (#{soName}
+	           ,#{prodLineCd}
+	           ,#{inspQty}
+	           ,#{prodEmpNo}
+	           ,#{implQty}
+	           ,#{badQty}
+	           ,#{insuser}
+	           ,#{insdttm}
+	           ,#{upduser}
+	           ,#{upddttm})
+	</insert>
+	
+	<select id="selectProdqualitySeqno"  parameterType="java.util.HashMap" resultType="java.lang.Integer">
+		/**
+		  * MesPopDAO.selectProdqualitySeqno
+		  * 제품 품질 SEQNO 조회
+		 */	
+		select MAX(isNull(PQ.seqno,0))+1 as maxSeq 
+		  from af_product PP 
+		  left outer join af_prodQuality PQ  on (PQ.PRODCODE = PP.prodcode)
+		 where PP.PRODCODE = #{soName}
+	</select>
+	
+	
+	<insert id="insertProdQualityItem" parameterType="java.util.HashMap">
+		/**
+		  * MesPopDAO.insertProdQualityItem
+		  * 제품품질정보 삽입
+		 */
+	
+		INSERT INTO dbo.af_prodQuality
+	           (PRODCODE
+	           ,SONO
+	           ,SEQNO
+	           ,MRRLKIND
+	           ,BADCODE
+	           ,BADQTY
+	           ,WONO
+	           ,insuser
+	           ,insdttm
+	           ,upduser
+	           ,upddttm)
+	     VALUES
+	           (#{soName}
+	           ,(SELECT PONO
+				   FROM af_workorder
+				  WHERE WONO = #{workOrderNo})
+	           ,#{pqSeqno}
+	           ,'P'
+	           ,#{badCode}
+	           ,#{badQty}
+	           ,#{workOrderNo}
+		       ,#{insuser}
+		       ,#{insdttm}
+		       ,#{upduser}
+		       ,#{upddttm})
+	</insert>
+	
+	<select id="selectProdstockSeqno"  parameterType="java.util.HashMap" resultType="java.lang.Integer">
+		/**
+		  * MesPopDAO.selectProdstockSeqno
+		  * 제품 재고 SEQNO 조회
+		 */	
+		select MAX(isNull(PQ.seqno,0))+1 as maxSeq 
+		  from af_product PP 
+		  left outer join af_prodstock PQ  on (PQ.PRODCODE = PP.prodcode)
+		 where PP.PRODCODE = #{soName}
+	</select>
+	
+	<insert id="insertProdstockItem" parameterType="java.util.HashMap" useGeneratedKeys="true" keyProperty="seqno">
+		/**
+		  * MesPopDAO.insertProdstockItem
+		  * 제품 재고 삽입
+		 */
+	
+		INSERT INTO af_prodstock
+	           (PRODCODE
+	           ,PRODNAMNE
+	           ,SEQNO
+	           ,STOCKQTY
+	           ,STOCKLOC
+	           ,PRODENTDATE
+	           ,PRODENTLOC
+	           ,PRODENTQTY
+	           ,PRODLOTNO
+	           ,insuser
+	           ,insdttm
+	           ,upduser
+	           ,upddttm)
+	     VALUES
+	           (#{soName}
+	           ,(SELECT PRODNAME
+				   FROM AF_PRODUCT
+				  WHERE PRODCODE = #{soName}
+				    AND USEYN = 'Y')
+	           ,#{seqno}
+	           ,#{implQty}
+	           ,'1'
+	           ,#{entDate}
+	           ,'1'
+	           ,#{implQty}
+	           ,'lotNo'
+	           ,#{insuser}
+	           ,#{insdttm}
+	           ,#{upduser}
+	           ,#{upddttm})
+	</insert>
+	
+	<select id="selectByBomToStockList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+	
+		select bm.MTRLCODE as mtrlcode
+		    ,  bm.UCOUNT *  so.soqty as sumQty
+		from af_salesorder so WITH(NOLOCK)
+		inner join AF_BOM bm WITH(NOLOCK) on (dbo.ft_get_BOMNO(so.SONAME,Convert(varchar(10),Getdate(),112)) = bm.BOMNO)
+		where so.sono = (SELECT PONO
+						   FROM af_workorder
+						  WHERE WONO = #{workOrderNo})
+	
+	
+	</select>
+	
+	
+	<update id="updateProcstock" parameterType="java.util.HashMap">
+		/**
+		  * MesPopDAO.updateProcstock
+		  * 공정 재고 수정
+		 */
+		 UPDATE AF_PROCSTOCK
+		    SET STOCKQTY = (STOCKQTY - #{sumQty})
+		  WHERE MTRLCODE = #{mtrlcode}
+		    AND SEQNO = '1'
+		    AND WORKLINE = #{prodLineCd}
+	</update>
+
+</mapper>

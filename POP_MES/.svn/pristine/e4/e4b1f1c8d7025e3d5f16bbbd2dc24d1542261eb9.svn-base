@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MesPopPopUpDAO">
+
+	<select id="selectCheckProdValidItem" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/**
+		  * MesPopDAO.selectCheckProdValidItem
+		  * 오투입 체크
+		 */
+		 
+		SELECT 
+			COUNT(*) CNT
+		FROM AF_BOM BO 
+		LEFT OUTER JOIN [AF_MATERIAL] MS ON ( BO.MTRLCODE = MS.MTRLCODE)
+		WHERE  BO.PRODCODE = #{soName} 
+		   AND MS.PRESSNAME= #{mtrlName} 
+	</select>
+	
+</mapper>

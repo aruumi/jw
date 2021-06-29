@@ -1,0 +1,73 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/egovframework/com/mes/include.jsp" %>
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<script>
+			var soName = '';
+		
+			$(function() {
+				$("[name='mtrlName']").keydown(function(key) {
+					if (key.keyCode == 13) {
+						checkValidProdCode();		
+					}
+				});
+			});
+			
+			function creationComplete(_soName) {
+				soName = _soName;
+			}
+			
+			function checkValidProdCode() {
+				var mtrlName = $("[name='mtrlName']").val();
+				if(mtrlName == '') { 
+					alert("자재 코드를 입력하세요.");
+					return false;
+				}
+				
+				$.post('/mes/pop/popup/data/selectCheckProdValidItem.do', {
+					soName: soName,
+					mtrlName: mtrlName
+				}, function(data) {
+					if(data.result == true) {
+						$("#soNameRslt").text(soName);
+						$("#mtrlNameRslt").text(mtrlName);
+						
+						if(data.item > 0) {
+							$("#result").text("정상");	
+						} else {
+							$("#result").text("오투입");
+							alert("자재가 오투입되었습니다!");
+						}
+					} else {
+						alert("데이터 조회 중에 오류가 발생하였습니다.");	
+					}
+				}).fail(function() {
+					alert("데이터 조회 중에 오류가 발생하였습니다.");
+				});
+			}
+		</script>
+	</head>
+	<body>
+		<div>
+			<input type="text" name="mtrlName" />
+			 <input type="button" onclick="checkValidProdCode();" value="자재코드 확인" class="btn" />
+			
+				<table>
+				<tr>
+					<th class="ver" width="180px;">품명 </th>
+					<td> <span id="soNameRslt" style="width:90%;" ></span></td>
+				</tr>
+				<tr>
+					<th>자재코드</th>
+					<td><span id="mtrlNameRslt"></span></td>
+				<tr>
+				<tr>
+					<th>결과</th>
+					<td><span id="result" class="result_txt"></td>
+				</tr>
+				</table>
+		</div>
+	</body>
+</html>
