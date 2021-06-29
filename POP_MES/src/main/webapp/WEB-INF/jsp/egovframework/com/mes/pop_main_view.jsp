@@ -75,7 +75,7 @@
 				<input type="button" onclick="endProdItemAction();" value="작업완료" class="pop_btn end">
 			</div>
 		</div>
-		<div class="footer"><h4>Copyright 2021 ⓒ 정원전자. All rights reserved. TEL : 055) 341 - 6618         </h4></div>
+		<div class="footer"><h4>Copyright 2021 ⓒ 정원전자. All rights reserved. TEL : 055) 341 - 6618   (test)      </h4></div>
 	</section>
 	<div id="ProdEndItemPopup" style="display:none;">
 		<iframe id="ProdEndItemFrame" src="/mes/pop/popup/prodEndItem.do" style="width:100%;height:95%;border:0"></iframe>         
